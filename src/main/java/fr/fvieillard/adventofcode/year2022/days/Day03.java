@@ -47,7 +47,25 @@ public class Day03 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        int total = 0;
+
+        for (int i=0; i<rucksacks.size()/3; i++) {
+            String elf1 = rucksacks.get(3 * i);
+            String elf2 = rucksacks.get(3 * i+1);
+            String elf3 = rucksacks.get(3 * i+2);
+
+//            System.out.printf("Elf1: %s%nElf2: %s%nElf3: %s%n%n", elf1, elf2, elf3);
+            char common = elf1.chars()
+                    .filter(e1 -> elf2.chars().anyMatch(e2 -> e2 == e1))
+                    .filter(e1 -> elf3.chars().anyMatch(e2 -> e2 == e1))
+                    .mapToObj(e -> (char)e)
+                    .findFirst().get();
+//            System.out.printf("Common element: %s, value: %s%n%n", common, getPriority(common));
+
+            total += getPriority(common);
+        }
+
+        return total;
     }
 
     private static int getPriority(char c) {
