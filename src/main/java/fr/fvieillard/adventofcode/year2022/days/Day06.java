@@ -1,0 +1,38 @@
+package fr.fvieillard.adventofcode.year2022.days;
+
+import java.io.InputStream;
+import java.util.stream.Collectors;
+
+import fr.fvieillard.adventofcode.year2022.Day2022;
+
+public class Day06 extends Day2022 {
+
+    public Day06(InputStream input) {
+        super(6, "Tuning Trouble", input);
+    }
+
+    public static void main(String... args) {
+        new Day06(Day06.class.getResourceAsStream("day_06.txt")).printDay();
+    }
+
+
+    @Override
+    public Object getSolutionPart1() {
+        String in = getInput();
+//        System.out.printf("Input: %s", in);
+
+        for (int i = 4; i < in.length(); i++) {
+            String sub = in.substring(i - 4, i);
+            int numberOfChars = sub.chars().mapToObj(value -> (char)value).collect(Collectors.toSet()).size();
+//            System.out.printf("Index %s, Analyzing \"%s\" - size: %s%n", i, sub, numberOfChars);
+            if (numberOfChars >= 4) return i;
+        }
+        return null;
+    }
+
+    @Override
+    public Object getSolutionPart2() {
+        return null;
+    }
+
+}
