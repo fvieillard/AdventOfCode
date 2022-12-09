@@ -80,7 +80,29 @@ public class Day05 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        Scanner instructions = parseInput();
+        instructions.useDelimiter("\n");
+        instructions.forEachRemaining(line -> {
+            Matcher matcher = INSTRUCTION_PATTERN.matcher(line);
+            matcher.matches();
+            int num = Integer.parseInt(matcher.group(1));
+            int from = Integer.parseInt(matcher.group(2));
+            int to = Integer.parseInt(matcher.group(3));
+
+            Deque<Character> source = map.get(from - 1);
+            Deque<Character> target = map.get(to - 1);
+
+            // We use a temp stack, so the order of crates is reversed 2 times.
+            Deque<Character> temp = new ArrayDeque<>();
+            for (int i = 0; i < num; i++) {
+                temp.push(source.pop());
+            }
+            for (int i = 0; i < num; i++) {
+                target.push(temp.pop());
+            }
+        });
+//        System.out.printf("Result Map: %s%n", map);
+        return map.stream().map(d -> d.peek().toString()).collect(Collectors.joining());
     }
 
 }
