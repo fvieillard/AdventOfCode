@@ -15,24 +15,27 @@ public class Day06 extends Day2022 {
         new Day06(Day06.class.getResourceAsStream("day_06.txt")).printDay();
     }
 
-
-    @Override
-    public Object getSolutionPart1() {
+    private Integer findPacket(int length) {
         String in = getInput();
 //        System.out.printf("Input: %s", in);
 
-        for (int i = 4; i < in.length(); i++) {
-            String sub = in.substring(i - 4, i);
+        for (int i = length; i < in.length(); i++) {
+            String sub = in.substring(i - length, i);
             int numberOfChars = sub.chars().mapToObj(value -> (char)value).collect(Collectors.toSet()).size();
 //            System.out.printf("Index %s, Analyzing \"%s\" - size: %s%n", i, sub, numberOfChars);
-            if (numberOfChars >= 4) return i;
+            if (numberOfChars >= length) return i;
         }
         return null;
     }
 
     @Override
+    public Object getSolutionPart1() {
+        return findPacket(4);
+    }
+
+    @Override
     public Object getSolutionPart2() {
-        return null;
+        return findPacket(14);
     }
 
 }
