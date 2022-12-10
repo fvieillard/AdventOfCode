@@ -11,6 +11,7 @@ public class Day08 extends Day2022 {
 
     int[][] forest;
     int[][] visibility;
+    int[][] scenicScore;
     int height;
     int width;
     int scannedTrees = 0;
@@ -70,8 +71,58 @@ public class Day08 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        scenicScore = new int[height][width];
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                scenicScore[y][x] = calculateScenicScore(y, x);
+            }
+        }
+
+//        System.out.printf("Scenix Score: %n%s%n", printMatrix(scenicScore));
+        // Max of all scenic score:
+        return Arrays.stream(scenicScore).mapToInt(
+                row -> Arrays.stream(row).max().orElse(0)
+        ).max().orElse(0);
     }
+
+    private int calculateScenicScore(final int y, final int x) {
+        return
+                viewingDistanceRight(y, x)
+                * viewingDistanceBottom(y, x)
+                * viewingDistanceLeft(y, x)
+                * viewingDistanceTop(y, x);
+    }
+
+    private int viewingDistanceTop(final int y, final int x) {
+        int treeSize = forest[y][x];
+        for (int i = 1; i <= y; i++) {
+            if (forest[y - i][x] >= treeSize) return i;
+        }
+        return y;
+    }
+    private int viewingDistanceBottom(final int y, final int x) {
+        int treeSize = forest[y][x];
+        for (int i = 1; i < height - y - 1; i++) {
+            if (forest[y + i][x] >= treeSize) return i;
+        }
+        return height - y - 1;
+    }
+    private int viewingDistanceRight(final int y, final int x) {
+        int treeSize = forest[y][x];
+        for (int i = 1; i <= width - x - 1; i++) {
+            if (forest[y][x + i] >= treeSize) return i;
+        }
+        return width - x - 1;
+    }
+    private int viewingDistanceLeft(final int y, final int x) {
+        int treeSize = forest[y][x];
+        for (int i = 1; i < x; i++) {
+            if (forest[y][x - i] >= treeSize) return i;
+        }
+        return x;
+    }
+
 
     private int getVisibleTreesInRow(int row, int from, int to) {
         int step = Math.round(Math.signum(to - from));
