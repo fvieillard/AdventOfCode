@@ -84,6 +84,9 @@ public class Day08 extends Day2022 {
                 maxHeight = currentHeight;
                 visibility[row][x] = 1;
                 result++;
+                if (currentHeight == 9) {
+                    break;
+                }
             }
         }
         return result;
@@ -99,6 +102,9 @@ public class Day08 extends Day2022 {
                 maxHeight = currentHeight;
                 visibility[x][column] = 1;
                 result++;
+                if (currentHeight == 9) { // No need to go further, 9 is the max
+                    break;
+                }
             }
         }
         return result;
