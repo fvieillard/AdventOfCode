@@ -23,7 +23,7 @@ public class Day07 extends Day2022 {
     }
 
     public static void main(String... args) {
-        new Day07(Day07.class.getResourceAsStream("examples/day_07.txt")).printDay();
+        new Day07(Day07.class.getResourceAsStream("day_07.txt")).printDay();
     }
 
     @Override
@@ -35,8 +35,8 @@ public class Day07 extends Day2022 {
             String line = scanner.nextLine();
 
             if (line.startsWith("$ cd /")) { // Root dir (init)
-                rootDir = new Directory("/");
-                currentDir = rootDir;
+                currentDir = new Directory("/");
+                rootDir = currentDir;
             } else if (line.startsWith("$ cd ..")) {   // Going up
                 currentDir = currentDir.parent;
             } else if (line.startsWith("$ cd ")) {  // Going down
@@ -48,9 +48,10 @@ public class Day07 extends Day2022 {
             }
         }
 
-        System.out.printf("Parsed structure: %n%s%n", rootDir.structure());
-        System.out.printf("List of directories:%n");
-        dirs.forEach(System.out::println);
+//        System.out.printf("Parsed structure: %n%s%n", rootDir.structure());
+//        System.out.printf("List of directories:%n");
+//        dirs.forEach(System.out::println);
+//        System.out.println();
     }
 
     @Override
@@ -60,7 +61,15 @@ public class Day07 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        long totalSpace = 70000000;
+        long neededSpace = 30000000;
+        long usedSpace = rootDir.totalSize();
+        long needToClear = neededSpace - (totalSpace - usedSpace);
+//        System.out.printf("Space used: %s / %s. I need to free at least %s%n", usedSpace, totalSpace, needToClear);
+        return dirs.stream()
+                .mapToLong(Directory::totalSize)
+                .filter(s -> s >= needToClear)
+                .min().getAsLong();
     }
 
 
