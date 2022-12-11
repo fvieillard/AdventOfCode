@@ -56,6 +56,19 @@ public class Day10 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        StringBuilder result = new StringBuilder();
+        for (int row=0; row < registerValues.size() / 40; row++) {
+            result.append("\n");
+            for (int col=0; col < 40; col++) {
+                int X = registerValues.get(row * 40 + col);
+//                System.out.printf("Value for row %s, column %s : %s%n", row, col, X);
+                if (col >= X-1 && col <= X+1) {
+                    result.append("#");
+                } else {
+                    result.append(".");
+                }
+            }
+        }
+        return result.toString();
     }
 }
