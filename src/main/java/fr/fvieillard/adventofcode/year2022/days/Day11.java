@@ -18,7 +18,7 @@ public class Day11 extends Day2022 {
     private static final Pattern MONKEY = Pattern.compile("""
 Monkey (?<id>\\d+):
   Starting items: (?<items>.*)
-  Operation: new = old (?<operator>[\\+\\*]) (?<operand>\\d+|old)
+  Operation: new = old (?<operator>[+*]) (?<operand>\\d+|old)
   Test: divisible by (?<test>\\d+)
     If true: throw to monkey (?<ifTrue>\\d+)
     If false: throw to monkey (?<IfFalse>\\d+)""");
@@ -33,16 +33,17 @@ Monkey (?<id>\\d+):
         new Day11(Day11.class.getResourceAsStream("day_11.txt")).printDay();
     }
 
-    @Override
-    protected void processInput() {
-        monkeys = new ArrayList<>();
+    protected List<Monkey> parseMonkeylist() {
+        List<Monkey> result = new ArrayList<>();
         Matcher matcher = MONKEY.matcher(getInput());
         while(matcher.find()) {
 //            System.out.printf("Monkey detected:%n%s%n%n", matcher.group(0));
             int monkeyId = Integer.parseInt(matcher.group("id"));
             Monkey monkey = new Monkey(
                     monkeyId,
-                    Arrays.stream(matcher.group("items").split(", ")).map(Long::valueOf).collect(ArrayDeque::new, Deque::add, Deque::addAll),
+                    Arrays.stream(matcher.group("items").split(", "))
+                            .mapToLong(Long::parseLong)
+                            .collect(ArrayDeque::new, Deque::add, Deque::addAll),
                     switch (matcher.group("operator")) {
                         case "+" -> Operator.ADD;
                         case "*" -> {
@@ -62,24 +63,28 @@ Monkey (?<id>\\d+):
                     Integer.parseInt(matcher.group("IfFalse"))
             );
 //            System.out.printf("%s%n", monkey);
-            monkeys.add(monkeyId, monkey);
+            result.add(monkeyId, monkey);
         }
+        return result;
     }
 
-    @Override
-    public Object getSolutionPart1() {
-        for (int i=1; i<=20; i++) {
-//            System.out.printf("%n=== Round %s:%n", i);
+    long simulateRounds(int nbRounds, int divideWorryAfterInspection) {
+        monkeys = parseMonkeylist();
+        Monkey.divideWorryAfterInspection = divideWorryAfterInspection;
+        for (int i=1; i<=nbRounds; i++) {
             monkeys.forEach(Monkey::inspectAll);
-//            monkeys.forEach(monkey -> {
-//                System.out.printf("Monkey %s: %s%n", monkey.id, monkey.items);
-//            });
+
+//            if (i<=20 || i%1000==0) {
+//                System.out.printf("=== Round %s:%n", i);
+//                monkeys.forEach(monkey -> {
+//                    System.out.printf("Monkey %s: %s - %s%n", monkey.id, monkey.items, monkey.activity);
+//                });
+//            }
         }
 //        System.out.printf("%n%nTotal activity: %n");
 //        monkeys.forEach(monkey -> {
 //            System.out.printf("Monkey %s: %s%n", monkey.id, monkey.activity);
 //        });
-
         long[] activity = monkeys.stream()
                 .map(monkey -> monkey.activity)
                 .sorted(Comparator.reverseOrder())
@@ -88,8 +93,13 @@ Monkey (?<id>\\d+):
     }
 
     @Override
+    public Object getSolutionPart1() {
+        return simulateRounds(20, 3);
+    }
+
+    @Override
     public Object getSolutionPart2() {
-        return null;
+        return simulateRounds(10000, 1);
     }
 
 
@@ -105,6 +115,8 @@ Monkey (?<id>\\d+):
         int monkeyIfFalse;
         // Counter for each item inspected
         int activity;
+        static int divideWorryAfterInspection;
+        static int reduceFactor;
 
         private Monkey(final int id, final Deque<Long> items, final Operator operator, final int operand, final int testDivisibleBy, final int monkeyIfTrue, final int monkeyIfFalse) {
             this.id = id;
@@ -117,12 +129,15 @@ Monkey (?<id>\\d+):
         }
 
         private void inspectAll() {
+            reduceFactor = monkeys.stream()
+                    .mapToInt(value -> value.testDivisibleBy)
+                    .reduce((left, right) -> left * right).getAsInt();
             while (items.size() > 0) {
                 inspectAndMove(items.removeFirst());
             }
         }
         private void inspectAndMove(long worryLevel) {
-//            System.out.printf("Monkey %s inspects item with a worry level of %s.%n", monkeyName, worryLevel);
+//            System.out.printf("Monkey %s inspects item with a worry level of %s.%n", id, worryLevel);
 
             // Apply Operator
             switch (operator) {
@@ -139,13 +154,14 @@ Monkey (?<id>\\d+):
 //                    System.out.printf("  Worry level is multiplied by itself to %s.%n", worryLevel);
                 }
             }
-            worryLevel = worryLevel / 3;
+
+            worryLevel = worryLevel / divideWorryAfterInspection;
 //            System.out.printf("  Monkey gets bored with item. Worry level is divided by 3 to %s.%n", worryLevel);
 
 
             // Test level of worry
             int targetMonkey;
-            if (worryLevel % testDivisibleBy == 0) {
+            if (worryLevel %testDivisibleBy == 0) {
 //                System.out.printf("  Current worry level is divisible by %s.%n", testDivisibleBy);
                 targetMonkey = monkeyIfTrue;
             } else {
@@ -154,7 +170,11 @@ Monkey (?<id>\\d+):
             }
 
             // Throw item
-            monkeys.get(targetMonkey).items.add(worryLevel);
+            // The numbers are rapidly becoming huge
+            // so the program cannot execute in a reasonable time.
+            // Since we don't need the real numbers but only a number with the same properties of divisibily
+            // by each monkey, we can keep the remainder of the division by the product of each monkey "divisor"
+            monkeys.get(targetMonkey).items.add(worryLevel % reduceFactor);
 //            System.out.printf("  Item with worry level %s is thrown to monkey %s.%n", worryLevel, targetMonkey);
 
             // Increment the activity counter
