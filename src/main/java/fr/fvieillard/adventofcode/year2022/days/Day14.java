@@ -30,7 +30,8 @@ public class Day14 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        Grid grid = new Grid(getInput(), new Point(500, 0, SOURCE), true);
+        return grid.simulate();
     }
 
 
@@ -70,9 +71,15 @@ public class Day14 extends Day2022 {
     static class Grid {
         private SortedSet<Point> points = new TreeSet<>();
         private Point source;
+        private boolean floor;
+        private int floorLevel;
         private int minX = Integer.MAX_VALUE, maxX = 0, minY = Integer.MAX_VALUE, maxY = 0;
 
         Grid(String input, Point source) {
+            this(input, source, false);
+        }
+        Grid(String input, Point source, boolean floor) {
+            this.floor = floor;
             this.source = source;
             addPoint(source);
             new Scanner(input).useDelimiter("\n").forEachRemaining(s -> {
@@ -92,6 +99,7 @@ public class Day14 extends Day2022 {
                     current = next;
                 }
             });
+            floorLevel = maxY + 2;
         }
 
         int simulate() {
@@ -101,26 +109,35 @@ public class Day14 extends Day2022 {
                 Point currentSand = source;
                 while (true) {
                     Point nextPos = new Point(currentSand.x, currentSand.y + 1, SAND);
-                    if (points.contains(nextPos)) {
+                    if (points.contains(nextPos) || floor && nextPos.y == floorLevel) {
                         nextPos = new Point(currentSand.x - 1, currentSand.y + 1, SAND);
                     }
-                    if (points.contains(nextPos)) {
+                    if (points.contains(nextPos) || floor && nextPos.y == floorLevel) {
                         nextPos = new Point(currentSand.x + 1, currentSand.y + 1, SAND);
                     }
-                    if (points.contains(nextPos)) {
-                        // currentSand is at rest
-                        points.add(currentSand);
+                    if (points.contains(nextPos) || floor && nextPos.y == floorLevel) {
+                        if (currentSand == source) {
+                            // currentSand is at the source and no move is possible, stop the simulation
+                            insideGrid = false;
+                        }
+                        // currentSand is at rest, let's get to the next unit of sand
+                        addPoint(currentSand);
                         break;
-                    } else if (nextPos.x < minX || nextPos.x > maxX || nextPos.y > maxY) {
+                    } else if (!floor && nextPos.y > maxY) {
+                        // falling into the void
                         insideGrid = false;
+                        // as this unit is actually falling into the void, it
+                        // should not count towards the result
+                        i--;
                         break;
                     }
                     currentSand = nextPos;
                 }
                 i++;
-                //draw();
+//                draw();
             }
-            return i - 1;
+//            draw();
+            return i;
         }
 
         private void addPoint(Point point) {
