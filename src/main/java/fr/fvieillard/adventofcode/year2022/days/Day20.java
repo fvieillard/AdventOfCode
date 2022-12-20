@@ -19,13 +19,12 @@ public class Day20 extends Day2022 {
     }
 
 
-    @Override
-    public Object getSolutionPart1() {
+    private long result(long decryptionKey, int nbRounds) {
         int i = 0;
         Element zero = null;
         List<Element> list = new ArrayList<>();
         for (String s:getInput().split("\n")) {
-            Element e = new Element(i++, Integer.parseInt(s));
+            Element e = new Element(i++, Integer.parseInt(s) * decryptionKey);
             if (e.value == 0) {
                 zero = e;
             }
@@ -33,27 +32,40 @@ public class Day20 extends Day2022 {
         }
         CircularList<Element> circularList = new CircularList<>(list);
 
-//        System.out.printf("List:%s%n%n", list);
+//        System.out.printf("Initial list : %s%n", circularList);
 
-        list.forEach(e -> {
-            circularList.move(e, e.value);
+        for (int round = 1; round <= nbRounds; round++){
+            list.forEach(e -> {
+                circularList.move(e, e.value);
 //            System.out.printf("Moving %5s  -  Circular List:%s%n", i, circularList);
-        });
+            });
+//            System.out.printf("List after round %2s : %s%n", round, circularList);
+        }
 
         int idx0 = circularList.indexOf(zero);
 //        System.out.printf("O is at position %s%n", idx0);
         return IntStream.of(1000, 2000, 3000)
                 .map(n -> idx0 + n)
                 .mapToObj(circularList::get)
-                .mapToInt(Element::value)
+                .mapToLong(Element::value)
                 .sum();
     }
 
     @Override
+    public Object getSolutionPart1() {
+        return result(1, 1);
+    }
+
+    @Override
     public Object getSolutionPart2() {
-        return null;
+        return result(811589153, 10);
     }
 
 
-    record Element(int originalOrder, int value){}
+    record Element(int originalOrder, long value){
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
+    }
 }

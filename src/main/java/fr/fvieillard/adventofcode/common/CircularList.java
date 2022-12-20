@@ -20,13 +20,13 @@ public class CircularList<T> {
         return content.indexOf(obj);
     }
 
-    public void move(T obj, int offset) {
+    public void move(T obj, long offset) {
         int index = content.indexOf(obj);
         if (index < 0){
             throw new IllegalArgumentException("List does not contain this value.");
         }
-        int newIndex = (index + offset) % lastIndex;
-        if (newIndex <= 0){
+        int newIndex = (int)((index + offset) % lastIndex);
+        if (newIndex <= 0) {
             newIndex = lastIndex + newIndex;
         }
         content.remove(index);
