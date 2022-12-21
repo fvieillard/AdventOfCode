@@ -3,10 +3,9 @@ package fr.fvieillard.adventofcode.year2022.days;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +17,8 @@ public class Day15 extends Day2022 {
             Sensor at x=(?<SensorX>-?\\d+), y=(?<SensorY>-?\\d+): \
             closest beacon is at x=(?<BeaconX>-?\\d+), y=(?<BeaconY>-?\\d+)""");
 
-    private Grid grid;
+    private Collection<Sensor> sensors;
+    private Collection<Point> beacons;
 
     public Day15(InputStream input) {
         super(15, "Beacon Exclusion Zone", input);
@@ -29,50 +29,50 @@ public class Day15 extends Day2022 {
     }
 
     protected void processInput() {
-        List<Point[]> sensorsAndBeacons = new ArrayList<>();
+        sensors = new HashSet<>();
+        beacons = new HashSet<>();
 
-        grid = new Grid();
         Matcher matcher = REPORT_LINE.matcher(getInput());
 
         while (matcher.find()) {
-            Point sensor = new Point(
-                    Integer.parseInt(matcher.group("SensorX")),
-                    Integer.parseInt(matcher.group("SensorY")),
-                    Point.Type.SENSOR);
-            Point nearestBeacon = new Point(
-                    Integer.parseInt(matcher.group("BeaconX")),
-                    Integer.parseInt(matcher.group("BeaconY")),
-                    Point.Type.BEACON);
+            int sX = Integer.parseInt(matcher.group("SensorX"));
+            int sY = Integer.parseInt(matcher.group("SensorY"));
+            int bX = Integer.parseInt(matcher.group("BeaconX"));
+            int bY = Integer.parseInt(matcher.group("BeaconY"));
 
-            sensorsAndBeacons.add(new Point[]{sensor, nearestBeacon});
-            grid.addPoint(sensor);
-            grid.addPoint(nearestBeacon);
+            sensors.add(new Sensor(sX, sY, Math.abs(bX - sX) + Math.abs(bY - sY)));
+            beacons.add(new Point(bX, bY));
         }
-
-        for (Point[] couple : sensorsAndBeacons) {
-            Point sensor = couple[0];
-            Point beacon = couple[1];
-            int distance = sensor.manhattanDistanceTo(beacon);
-//            System.out.printf("%s - %s, distance: %s%n", sensor, beacon, distance);
-
-            // Calculate cells cleared on line 2000000 only (no need to do the rest)
-            int targetY = 2000000;
-            int offsetY = Math.abs(targetY - sensor.y);
-            for (int x = 0; x <= distance - offsetY; x++) {
-                grid.addPoint(new Point(sensor.x + x, targetY, Point.Type.CLEARED));
-                grid.addPoint(new Point(sensor.x - x, targetY, Point.Type.CLEARED));
-            }
-            //grid.draw();
-        }
-
-//        grid.draw();
     }
 
     @Override
     public Object getSolutionPart1() {
-        return grid.getPoints().stream()
-                .filter(point -> point.y == 2000000 && point.type != Point.Type.BEACON)
-                .count();
+        List<Range> ranges = new ArrayList<>();
+        // On the target row, we find the range covered by each sensor (cells cleared),
+        // then we calculate the union of all the ranges, finding the total number of cells cleared.
+        int row = 2000000;
+//        int row = 10;
+        for (Sensor sensor:sensors) {
+            int distanceY = Math.abs(sensor.y - row);
+            int distanceX = sensor.distance - distanceY;
+            if (distanceX > 0) {
+                Range rangeClearedBySensor = new Range(sensor.x - distanceX, sensor.x + distanceX);
+//                System.out.printf("On row %s, %s clears %s%n", row, sensor, rangeClearedBySensor);
+                ranges.add(rangeClearedBySensor);
+            } else {
+//                System.out.printf("On row %s, %s clears no cell%n", row, sensor);
+            }
+
+        }
+
+        // Result is the sum of size of all the reduced ranges (number of cells cleared)
+        // minus the number of beacons that actually contain a beacon that we know of
+        return Range.reduce(ranges).stream()
+                       .mapToInt(Range::size)
+                       .sum()
+               - beacons.stream()
+                       .filter(point -> point.y == row)
+                       .count();
     }
 
     @Override
@@ -80,78 +80,43 @@ public class Day15 extends Day2022 {
         return null;
     }
 
-
-    record Point(int x, int y, Type type) implements Comparable<Point> {
-        enum Type {
-            SENSOR('S'), BEACON('B'), CLEARED('#');
-            final Character representation;
-
-            Type(final Character representation) {
-                this.representation = representation;
-            }
+    record Range(int from, int to) {
+        int size() {
+            return to - from + 1;
         }
 
-        @Override
-        public int compareTo(final Point o) {
-            if (o.y == y) {
-                return x - o.x;
-            }
-            return y - o.y;
+        boolean overlap(Range other) {
+            return !(other.to < from || other.from > to);
         }
 
-        @Override
-        public String toString() {
-            return type + "(" + x + "," + y + ")";
-        }
+        static Collection<Range> reduce(Collection<Range> ranges) {
+            // Sorting the ranges by their 'from' guarantees that if 2 ranges overlap
+            // they will come in sequence.
+            List<Range> sortedRanges = new ArrayList<>(ranges);
+            sortedRanges.sort(Comparator.comparingInt((Range o) -> o.from));
+//            System.out.printf("Sorted ranges: %s%n", sortedRanges);
 
-        @Override
-        public boolean equals(final Object obj) {
-            if (obj instanceof Point point) {
-                return point.x == x && point.y == y;
-            }
-            return false;
-        }
-
-
-        public int manhattanDistanceTo(Point p2) {
-            return Math.abs(x - p2.x) + Math.abs(y - p2.y);
-        }
-    }
-
-
-    static class Grid {
-        private SortedSet<Point> points = new TreeSet<>();
-        private int minX = Integer.MAX_VALUE, maxX = 0, minY = Integer.MAX_VALUE, maxY = 0;
-
-        private void addPoint(Point point) {
-            points.add(point);
-            minX = Math.min(minX, point.x);
-            maxX = Math.max(maxX, point.x);
-            minY = Math.min(minY, point.y);
-            maxY = Math.max(maxY, point.y);
-        }
-
-        void draw() {
-            System.out.printf("%s Points: %s%n", points.size(), points);
-            System.out.printf("From (%s,%s) to (%s,%s)%n", minX, minY, maxX, maxY);
-            int cursorX = minX - 1;
-            int cursorY = minY;
-            StringBuilder result = new StringBuilder();
-            for (Point point : points) {
-                while (point.y > cursorY) {
-                    result.append(".".repeat(maxX - cursorX)).append("\n");
-                    cursorY++;
-                    cursorX = minX - 1;
+            // Since ranges are sorted, we can unionize each new range with the previously
+            // reduced range. If the new range doesn't overlap with the previous result,
+            // we add the result to the list and start a new reduced Range.
+            List<Range> result = new ArrayList<>();
+            Range currentRange = sortedRanges.remove(0);
+            for (Range range:sortedRanges) {
+                if (range.overlap(currentRange)) {
+                    currentRange = new Range(Math.min(currentRange.from, range.from), Math.max(range.to, currentRange.to));
+                } else {
+                    result.add(currentRange);
+                    currentRange = range;
                 }
-                result.append(".".repeat(point.x - cursorX - 1));
-                result.append(point.type.representation);
-                cursorX = point.x;
             }
-            System.out.println(result);
-        }
+            result.add(currentRange);
 
-        public Collection<Point> getPoints() {
-            return Collections.unmodifiableSet(points);
+//            System.out.printf("Reduced ranges: %s%n", result);
+
+            return result;
         }
     }
+
+    record Point(int x, int y) {}
+    record Sensor(int x, int y, int distance) {}
 }
