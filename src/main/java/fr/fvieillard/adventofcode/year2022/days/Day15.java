@@ -35,40 +35,45 @@ public class Day15 extends Day2022 {
         Matcher matcher = REPORT_LINE.matcher(getInput());
 
         while (matcher.find()) {
-            int sX = Integer.parseInt(matcher.group("SensorX"));
-            int sY = Integer.parseInt(matcher.group("SensorY"));
-            int bX = Integer.parseInt(matcher.group("BeaconX"));
-            int bY = Integer.parseInt(matcher.group("BeaconY"));
+            long sX = Integer.parseInt(matcher.group("SensorX"));
+            long sY = Integer.parseInt(matcher.group("SensorY"));
+            long bX = Integer.parseInt(matcher.group("BeaconX"));
+            long bY = Integer.parseInt(matcher.group("BeaconY"));
 
             sensors.add(new Sensor(sX, sY, Math.abs(bX - sX) + Math.abs(bY - sY)));
             beacons.add(new Point(bX, bY));
         }
     }
 
-    @Override
-    public Object getSolutionPart1() {
+    private Collection<Range> getRangesOnLine(int row, Range searchArea) {
         List<Range> ranges = new ArrayList<>();
         // On the target row, we find the range covered by each sensor (cells cleared),
         // then we calculate the union of all the ranges, finding the total number of cells cleared.
-        int row = 2000000;
-//        int row = 10;
         for (Sensor sensor:sensors) {
-            int distanceY = Math.abs(sensor.y - row);
-            int distanceX = sensor.distance - distanceY;
+            long distanceY = Math.abs(sensor.y - row);
+            long distanceX = sensor.distance - distanceY;
             if (distanceX > 0) {
                 Range rangeClearedBySensor = new Range(sensor.x - distanceX, sensor.x + distanceX);
 //                System.out.printf("On row %s, %s clears %s%n", row, sensor, rangeClearedBySensor);
+                if (searchArea != null) {
+                    rangeClearedBySensor = rangeClearedBySensor.intersect(searchArea);
+                }
                 ranges.add(rangeClearedBySensor);
             } else {
 //                System.out.printf("On row %s, %s clears no cell%n", row, sensor);
             }
 
         }
+        return ranges;
+    }
 
+    @Override
+    public Object getSolutionPart1() {
+        int row = 2000000;
         // Result is the sum of size of all the reduced ranges (number of cells cleared)
         // minus the number of beacons that actually contain a beacon that we know of
-        return Range.reduce(ranges).stream()
-                       .mapToInt(Range::size)
+        return Range.reduce(getRangesOnLine(row, null)).stream()
+                       .mapToLong(Range::size)
                        .sum()
                - beacons.stream()
                        .filter(point -> point.y == row)
@@ -77,23 +82,52 @@ public class Day15 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
+        int minX = 0;
+        int maxX = 4000000;
+        int minY = 0;
+        int maxY = 4000000;
+        Range searchRange = new Range(minX, maxX);
+
+        for (int row = minY; row <= maxY; row++) {
+            List<Range> rangesOnRow = Range.reduce(getRangesOnLine(row, searchRange));
+//            System.out.printf("row = %s --> %s%n", row, rangesOnRow);
+
+            if (rangesOnRow.size() > 1) {
+//                System.out.printf("row = %s --> %s%n", row, rangesOnRow);
+                long x = rangesOnRow.get(0).to + 1;
+//                System.out.printf("Found eligible cell at x=%s, y=%s !!%n", x, row);
+                return 4000000 * x + row;
+            }
+        }
         return null;
     }
 
-    record Range(int from, int to) {
-        int size() {
+    record Range(long from, long to) {
+        long size() {
             return to - from + 1;
         }
 
         boolean overlap(Range other) {
             return !(other.to < from || other.from > to);
         }
+        boolean contiguous(Range other) {
+            return (other.to == from - 1 || other.from == to + 1);
+        }
 
-        static Collection<Range> reduce(Collection<Range> ranges) {
+        Range intersect(Range other) {
+            if (!other.overlap(this)) {
+                return null;
+            } else {
+                return new Range(Math.max(from, other.from), Math.min(to, other.to));
+            }
+        }
+
+
+        static List<Range> reduce(Collection<Range> ranges) {
             // Sorting the ranges by their 'from' guarantees that if 2 ranges overlap
             // they will come in sequence.
             List<Range> sortedRanges = new ArrayList<>(ranges);
-            sortedRanges.sort(Comparator.comparingInt((Range o) -> o.from));
+            sortedRanges.sort(Comparator.comparingLong((Range o) -> o.from));
 //            System.out.printf("Sorted ranges: %s%n", sortedRanges);
 
             // Since ranges are sorted, we can unionize each new range with the previously
@@ -102,7 +136,7 @@ public class Day15 extends Day2022 {
             List<Range> result = new ArrayList<>();
             Range currentRange = sortedRanges.remove(0);
             for (Range range:sortedRanges) {
-                if (range.overlap(currentRange)) {
+                if (range.overlap(currentRange) || range.contiguous(currentRange)) {
                     currentRange = new Range(Math.min(currentRange.from, range.from), Math.max(range.to, currentRange.to));
                 } else {
                     result.add(currentRange);
@@ -117,6 +151,6 @@ public class Day15 extends Day2022 {
         }
     }
 
-    record Point(int x, int y) {}
-    record Sensor(int x, int y, int distance) {}
+    record Point(long x, long y) {}
+    record Sensor(long x, long y, long distance) {}
 }
