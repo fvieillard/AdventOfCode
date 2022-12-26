@@ -79,43 +79,49 @@ public class Day09 extends Day2022 {
     @Override
     protected void processInput() {
         moves = getInput().lines().map(Move::parse).toList();
-        System.out.printf("List of moves: %s%n", moves);
+//        System.out.printf("List of moves: %s%n", moves);
     }
 
-    @Override
-    public Object getSolutionPart1() {
+    private int simulateRope(int numberOfKnots) {
         Point start = new Point(0,0);
-        Point head = start;
-        Point tail = start;
+        Point[] knots = new Point[numberOfKnots];
+        for (int i=0; i<numberOfKnots; i++) knots[i] = start;
         Set<Point> positionsVisited = new HashSet<>();
-        positionsVisited.add(tail);
+        positionsVisited.add(knots[numberOfKnots-1]);
         for (Move move:moves) {
-            System.out.printf("Head%s, Tail%s  -->  %s%n", head, tail, move);
+//            System.out.printf("Head%s  -->  %s%n", knots[0], move);
             for (int step=0; step < move.distance; step++) {
-                head = head.move(move.dir);
-                System.out.printf("  -->  %s", head);
+                knots[0] = knots[0].move(move.dir);
+                for (int knot = 0; knot < numberOfKnots - 1; knot++) {
+                    Point currentKnot = knots[knot];
+                    Point nextKnot = knots[knot + 1];
 
-                if (tail.distance(head) > Math.sqrt(2)) {
-                    tail = tail.move(move.dir);
-                    // tail should be at exactly one or else we realign horizontally or vertically
-                    if (tail.distance(head) > 1) {
-                        tail = switch (move.dir) {
-                            case UP, DOWN -> new Point(head.x, tail.y);
-                            case LEFT, RIGHT ->  new Point(tail.x, head.y);
-                        };
+//                    System.out.printf("   Knot %s: %s  -->  ", knot, knots[knot]);
+
+                    if (nextKnot.distance(currentKnot) > Math.sqrt(2)) {
+                        nextKnot = new Point(
+                                nextKnot.x + (int)Math.signum(currentKnot.x - nextKnot.x),
+                                nextKnot.y + (int)Math.signum(currentKnot.y - nextKnot.y)
+                        );
+//                        System.out.printf("move knot %s to %s%n", knot + 1, nextKnot);
+                        knots[knot + 1] = nextKnot;
+                    } else {
+//                        System.out.printf("do nothing%n");
                     }
-                    System.out.printf(", move tail to %s%n", tail);
-                    positionsVisited.add(tail);
-                } else {
-                    System.out.printf(", do nothing%n");
                 }
+                positionsVisited.add(knots[numberOfKnots - 1]);
             }
         }
         return positionsVisited.size();
     }
 
     @Override
+    public Object getSolutionPart1() {
+        return simulateRope(2);
+    }
+
+    @Override
     public Object getSolutionPart2() {
-        return null;
+        return simulateRope(10);
     }
 }
