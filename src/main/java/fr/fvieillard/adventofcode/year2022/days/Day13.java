@@ -3,8 +3,11 @@ package fr.fvieillard.adventofcode.year2022.days;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import fr.fvieillard.adventofcode.year2022.Day2022;
 
@@ -43,8 +46,23 @@ public class Day13 extends Day2022 {
 
     @Override
     public Object getSolutionPart2() {
+        List<Element> list = getInput().lines()
+                .filter(Predicate.not(String::isBlank))
+                .map(Element::parse)
+                .collect(Collectors.toList());
+        Element divider1 = Element.parse("[[2]]");
+        list.add(divider1);
+        Element divider2 = Element.parse("[[6]]");
+        list.add(divider2);
 
-        return null;
+        Collections.sort(list);
+//        System.out.printf("Sorted List: %n");
+//        list.forEach(System.out::println);
+        int idx1 = list.indexOf(divider1) + 1;
+        int idx2 = list.indexOf(divider2) + 1;
+//        System.out.printf("Index of divider %s: %s%n", divider1, idx1);
+//        System.out.printf("Index of divider %s: %s%n", divider2, idx2);
+        return idx1 * idx2;
     }
 
 
@@ -133,7 +151,7 @@ public class Day13 extends Day2022 {
 
         @Override
         public String toString() {
-            return String.valueOf(elems);
+            return Arrays.toString(elems);
         }
 
         @Override
