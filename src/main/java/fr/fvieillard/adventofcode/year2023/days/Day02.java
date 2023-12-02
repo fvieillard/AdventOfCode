@@ -70,7 +70,19 @@ public class Day02 extends Day2023 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        return input.entrySet().stream().mapToInt(integerListEntry -> {
+            Integer needRed = 0, needGreen = 0, needBlue = 0;
+            for (Draw draw:integerListEntry.getValue()) {
+                needRed = Math.max(needRed, draw.nbRed());
+                needGreen = Math.max(needGreen, draw.nbGreen());
+                needBlue = Math.max(needBlue, draw.nbBlue());
+            }
+            Integer power = needRed * needGreen * needBlue;
+            System.out.println(String.format("For game %s, we need at least %s red cubes, %s green cubes and %s blue cubes. The power for this game is %s",
+                    integerListEntry.getKey(), needRed, needGreen, needBlue, power));
+            return power;
+        })
+                .sum();
     }
 
 
