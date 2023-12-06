@@ -7,49 +7,54 @@ import java.util.List;
 import fr.fvieillard.adventofcode.year2023.Day2023;
 
 public class Day06 extends Day2023 {
-    List<Race> races = new ArrayList<>();
 
     public Day06(InputStream input) {
         super(6, "Wait For It", input);
-        parseInput();
     }
 
     public static void main(String... args) {
         new Day06(Day06.class.getResourceAsStream("day_06.txt")).printDay();
     }
 
-    void parseInput() {
-        String[] lines = getInput().split("\n");
 
+    @Override
+    public Object getSolutionPart1() {
+        List<Race> races = new ArrayList<>();
+
+        String[] lines = getInput().split("\n");
         String[] times = lines[0].replaceAll("Time:\\s*","").split(" +");
         String[] distances = lines[1].replaceAll("Distance:\\s*","").split(" +");
 
         for (int i = 0; i < times.length; i++) {
-            races.add(new Race(Integer.valueOf(times[i]), Integer.valueOf(distances[i])));
+            races.add(new Race(Long.valueOf(times[i]), Long.valueOf(distances[i])));
         }
 
         System.out.println(races);
-    }
 
-    @Override
-    public Object getSolutionPart1() {
-        return races.stream().mapToInt(Race::waysToWin).reduce((left, right) -> left * right).getAsInt();
+        return races.stream().mapToLong(Race::waysToWin).reduce((left, right) -> left * right).getAsLong();
     }
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        String[] lines = getInput().split("\n");
+
+        Race race = new Race(Long.valueOf(lines[0].replaceAll("Time:| *","")),
+        Long.valueOf(lines[1].replaceAll("Distance:| *","")));
+
+        System.out.println(race);
+
+        return race.waysToWin();
     }
 
 
-    record Race(Integer duration, Integer recordDistance) {
-        boolean isWinner(Integer timePressed) {
+    record Race(Long duration, Long recordDistance) {
+        boolean isWinner(Long timePressed) {
             return timePressed * (duration - timePressed) > recordDistance;
         }
 
-        Integer[] boudariesToWin() {
-            Integer min = null, max = null;
-            for (int i = 0; i < duration; i++) {
+        Long[] boudariesToWin() {
+            Long min = null, max = null;
+            for (long i = 0; i < duration; i++) {
                 if (isWinner(i)) {
                     if (min == null) {
                         min = i;
@@ -60,11 +65,11 @@ public class Day06 extends Day2023 {
                     break;
                 }
             }
-            return new Integer[]{min, max};
+            return new Long[]{min, max};
         }
 
-        Integer waysToWin() {
-            Integer[] boudaries = boudariesToWin();
+        Long waysToWin() {
+            Long[] boudaries = boudariesToWin();
             return boudaries[1] - boudaries[0] + 1;
         }
     }
