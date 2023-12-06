@@ -3,6 +3,7 @@ package fr.fvieillard.adventofcode.year2023.days;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -11,26 +12,27 @@ import fr.fvieillard.adventofcode.year2023.Day2023;
 
 public class Day05 extends Day2023 {
 
-    private SortedSet<Range> seedToSoil = new TreeSet<>();
-    private SortedSet<Range> soilToFertilizer = new TreeSet<>();
-    private SortedSet<Range> fertilizerToWater = new TreeSet<>();
-    private SortedSet<Range> waterToLight = new TreeSet<>();
-    private SortedSet<Range> lightToTemperature = new TreeSet<>();
-    private SortedSet<Range> temperatureToHumidity = new TreeSet<>();
-    private SortedSet<Range> humidityToLocation = new TreeSet<>();
+    private SortedSet<MappingRange> seedToSoil = new TreeSet<>();
+    private SortedSet<MappingRange> soilToFertilizer = new TreeSet<>();
+    private SortedSet<MappingRange> fertilizerToWater = new TreeSet<>();
+    private SortedSet<MappingRange> waterToLight = new TreeSet<>();
+    private SortedSet<MappingRange> lightToTemperature = new TreeSet<>();
+    private SortedSet<MappingRange> temperatureToHumidity = new TreeSet<>();
+    private SortedSet<MappingRange> humidityToLocation = new TreeSet<>();
     private List<Long> seeds = new ArrayList<>();
 
     public Day05(InputStream input) {
         super(5, "If You Give A Seed A Fertilizer", input);
-        parseInput();
+        processInput();
     }
 
     public static void main(String... args) {
         new Day05(Day05.class.getResourceAsStream("day_05.txt")).printDay();
     }
 
-    void parseInput() {
-        SortedSet<Range> currentMap = new TreeSet<>();
+    @Override
+    protected void processInput() {
+        SortedSet<MappingRange> currentMap = new TreeSet<>();
         for (String line : getInput().split("\n")) {
             if (line.startsWith("seeds: ")) {
                 Arrays.stream(line.substring(7).split(" "))
@@ -62,7 +64,7 @@ public class Day05 extends Day2023 {
                     case "":
                         break;
                     default:
-                        currentMap.add(Range.fromString(line));
+                        currentMap.add(MappingRange.fromString(line));
                         break;
                 }
             }
@@ -71,75 +73,131 @@ public class Day05 extends Day2023 {
 
     @Override
     public Object getSolutionPart1() {
-        return seeds.stream()
-                .mapToLong(value -> mapSeedToLocation(value))
-                .min().getAsLong();
+        return mapSeedToLocation(
+                seeds.stream().map(aLong -> new Range(aLong, 1L)).toList()
+        ).stream().mapToLong(Range::start).min().getAsLong();
     }
 
     @Override
     public Object getSolutionPart2() {
-        List<Long> realseeds = new ArrayList<>();
-        for (int i=0; i<seeds.size(); i=i+2) {
-            for (long j=0; j<seeds.get(i+1); j++) {
-                realseeds.add(seeds.get(i)+j);
-            }
+        Collection<Range> realSeeds = new TreeSet<>();
+        for (int i = 0; i < seeds.size(); i = i + 2) {
+            realSeeds.add(new Range(seeds.get(i), seeds.get(i + 1)));
         }
-        return realseeds.stream()
-                .mapToLong(value -> mapSeedToLocation(value))
-                .min().getAsLong();
+        return mapSeedToLocation(realSeeds).stream().mapToLong(Range::start).min().getAsLong();
     }
 
 
-    Long mapSeedToLocation(Long seed) {
-        System.out.print("Seed " + seed);
-        Long soil = map(seed, seedToSoil);
-        System.out.print(", soil " + soil);
-        Long fertilizer = map(soil, soilToFertilizer);
-        System.out.print(", fertilizer " + fertilizer);
-        Long water = map(fertilizer, fertilizerToWater);
-        System.out.print(", water " + water);
-        Long light = map(water, waterToLight);
-        System.out.print(", light " + light);
-        Long temperature = map(light, lightToTemperature);
-        System.out.print(", temperature " + temperature);
-        Long humidity = map(temperature, temperatureToHumidity);
-        System.out.print(", humidity " + humidity);
-        Long location = map(humidity, humidityToLocation);
-        System.out.println(", location " + location);
+    Collection<Range> mapSeedToLocation(Collection<Range> seed) {
+//        System.out.println("Seed " + seed);
+        Collection<Range> soil = map(seed, seedToSoil);
+//        System.out.println(", soil " + soil);
+        Collection<Range> fertilizer = map(soil, soilToFertilizer);
+//        System.out.println(", fertilizer " + fertilizer);
+        Collection<Range> water = map(fertilizer, fertilizerToWater);
+//        System.out.println(", water " + water);
+        Collection<Range> light = map(water, waterToLight);
+//        System.out.println(", light " + light);
+        Collection<Range> temperature = map(light, lightToTemperature);
+//        System.out.println(", temperature " + temperature);
+        Collection<Range> humidity = map(temperature, temperatureToHumidity);
+//        System.out.println(", humidity " + humidity);
+        Collection<Range> location = map(humidity, humidityToLocation);
+//        System.out.println(", location " + location);
         return location;
     }
 
-    static Long map(Long value, SortedSet<Range> map) {
-        for (Range range : map) {
-            if (range.contains(value)) {
-                return range.mapToDestination(value);
+    static Collection<Range> map(Collection<Range> value, Collection<MappingRange> map) {
+        Collection<Range> nonMappedRanges = new ArrayList<>(value);
+        Collection<Range> mappedRanges = new ArrayList<>();
+        for (MappingRange mappingRange : map) {
+            Collection<Range> intermediate = new ArrayList<>(nonMappedRanges);
+            for (Range input : nonMappedRanges) {
+                 for (Range r:mappingRange.range().intersect(input)) {
+                    if (mappingRange.range.fullyContains(r)) {
+                        intermediate.remove(input);
+                        mappedRanges.add(mappingRange.mapToDestination(r));
+                    } else {
+                        intermediate.add(r);
+                    }
+                 }
             }
+            nonMappedRanges = intermediate;
         }
-        return value;
+
+        nonMappedRanges.addAll(mappedRanges);
+        return nonMappedRanges;
     }
 
-    record Range(Long destinationStart, Long sourceStart,
-                 Long rangeLength) implements Comparable<Range> {
-        static Range fromString(String input) {
-            String[] in = input.split(" ");
-            return new Range(Long.valueOf(in[0]), Long.valueOf(in[1]), Long.valueOf(in[2]));
+    record Range(Long start, Long length) implements Comparable<Range> {
+
+        @Override
+        public String toString() {
+            return String.format("[%s -> %s]", start(), end());
         }
 
-        boolean contains(Long value) {
-            return value >= sourceStart && value < (sourceStart + rangeLength);
-        }
-
-        Long mapToDestination(Long value) {
-            if (!contains(value)) {
-                throw new IllegalArgumentException("Not within range");
-            }
-            return value - sourceStart + destinationStart;
+        Long end() {
+            return start + length - 1;
         }
 
         @Override
         public int compareTo(final Range o) {
-            return sourceStart.compareTo(o.sourceStart);
+            return start.compareTo(o.start);
         }
+
+        boolean contains(Range value) {
+            return contains(value.start()) || contains(value.end());
+        }
+
+        boolean fullyContains(Range value) {
+            return contains(value.start()) && contains(value.end());
+        }
+
+        boolean contains(Long value) {
+            return value >= start() && value <= end();
+        }
+
+        static Range fromBoundaries(long start, long end) {
+            return new Range(start, end - start);
+        }
+
+        Collection<Range> intersect(Range value) {
+            Collection<Range> result = new TreeSet<>();
+            if (contains(value)) {
+                if (value.start() < start()) {
+                    result.add(new Range(value.start, start() - value.start()));
+                }
+                if (value.end() > end()) {
+                    result.add(new Range(end() + 1, value.end() - end()));
+                }
+                result.add(Range.fromBoundaries(Math.max(value.start(), start()), Math.min(value.end(), end()) + 1));
+            }
+//            System.out.println(String.format("%s ∩ %s = %s", this, value, result));
+            return result;
+        }
+    }
+
+    record MappingRange(Range range, Long destinationStart) implements Comparable<MappingRange> {
+        static MappingRange fromString(String input) {
+            String[] in = input.split(" ");
+            return new MappingRange(new Range(Long.valueOf(in[1]), Long.valueOf(in[2])), Long.valueOf(in[0]));
+        }
+
+        boolean contains(Range value) {
+            return range.contains(value);
+        }
+
+        public int compareTo(final MappingRange o) {
+            return range.compareTo(o.range);
+        }
+
+        Range mapToDestination(Range value) {
+            if (!range.fullyContains(value)) {
+                throw new IllegalArgumentException("not in range");
+            }
+            return new Range(destinationStart + value.start - range.start, value.length);
+        }
+
     }
 
 }
