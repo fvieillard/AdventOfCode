@@ -1,2 +1,4 @@
-/src/main/resources/
-/target/
+target/
+.idea/
+.iml
+*/src/main/resources/fr/fvieillard/adventofcode/year*/*.txt
