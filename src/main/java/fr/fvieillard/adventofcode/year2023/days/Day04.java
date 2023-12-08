@@ -39,8 +39,32 @@ public class Day04 extends Day2023 {
 
     @Override
     public Object getSolutionPart2() {
-        return null;
+        Integer scores[] = new Integer[Math.toIntExact(getInput().lines().count())];
+        for (String card : getInput().split("\n")) {
+            Integer cardNumber = Integer.valueOf(card.substring(5, card.indexOf(':')).trim());
+            List<String> winning = Arrays.asList(card.substring(card.indexOf(':') + 1, card.indexOf('|')).trim().split("\\s+"));
+            List<String> played = new ArrayList<>(Arrays.asList(card.substring(card.indexOf('|') + 1).trim().split("\\s+")));
+            played.retainAll(winning);
+            scores[cardNumber - 1] = played.size();
+        }
+        System.err.println(Arrays.toString(scores));
+
+        int totalCountOfCards = 0;
+        for (int i = 0; i < scores.length; i++) {
+            totalCountOfCards += getCards(i, scores);
+        }
+
+        return totalCountOfCards;
     }
 
 
+    private Integer getCards(Integer card, Integer[] scores) {
+        int score = scores[card];
+        int total = 1;
+
+        for (int i = 1; i <= score; i++) {
+            total += getCards(card + i, scores);
+        }
+        return total;
+    }
 }
