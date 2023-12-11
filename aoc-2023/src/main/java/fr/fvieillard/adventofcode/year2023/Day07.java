@@ -117,7 +117,7 @@ public class Day07 extends Day2023 {
         for (Row r : rows) {
             i++;
             sum += i * r.bid;
-            System.err.println(String.format("%s,  %s * %s", r.hand, i, r.bid));
+            LOG.debug("{},  {} * {}", r.hand, i, r.bid);
         }
         return sum;
     }

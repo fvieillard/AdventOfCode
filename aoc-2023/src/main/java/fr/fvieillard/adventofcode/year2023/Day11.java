@@ -13,9 +13,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Day11 extends Day2023 {
-
-
+    private static final Logger LOG = LogManager.getLogger();
     SortedSet<Point2D> universe = new TreeSet<>();
     SortedSet<Integer> rowsWithoutGalaxy = new TreeSet<>();
     SortedSet<Integer> columnsWithoutGalaxy = new TreeSet<>();
@@ -40,11 +42,11 @@ public class Day11 extends Day2023 {
         Pattern galaxyPattern = Pattern.compile("#");
 
         for (String line : lines) {
-            System.err.println("Line " + y + ": " + line);
+            LOG.debug("Line {}: {}", y, line);
             Matcher matcher = galaxyPattern.matcher(line);
             List<MatchResult> results = matcher.results().toList();
             for (MatchResult result : results) {
-                System.err.println("Found galaxy at " + new Point2D(y, result.start()));
+                LOG.debug("Found galaxy at {}", new Point2D(y, result.start()));
                 rowsWithoutGalaxy.remove(y);
                 columnsWithoutGalaxy.remove(result.start());
                 universe.add(new Point2D(y, result.start()));
@@ -52,13 +54,13 @@ public class Day11 extends Day2023 {
             y++;
         }
 
-        System.err.println("State of universe: " + universe);
+        LOG.debug("State of universe: {}", universe);
     }
 
 
     public Set<Point2D> expandedUniverse(int expansionFactor) {
-        System.err.println("No galaxy in rows: " + rowsWithoutGalaxy + ". expanding...");
-        System.err.println("No galaxy in colums: " + columnsWithoutGalaxy + ". expanding...");
+        LOG.debug("No galaxy in rows: {}. expanding...", rowsWithoutGalaxy);
+        LOG.debug("No galaxy in colums: {}. expanding...", columnsWithoutGalaxy);
 
 
         Set<Point2D> expandedUniverse = new TreeSet<>();
@@ -68,7 +70,7 @@ public class Day11 extends Day2023 {
                     point.y + expansionFactor * rowsWithoutGalaxy.headSet(point.y).size(),
                     point.x + expansionFactor * columnsWithoutGalaxy.headSet(point.x).size());
             expandedUniverse.add(expandedPoint);
-            System.err.println(point + " --> " + expandedPoint);
+            LOG.debug(point + " --> " + expandedPoint);
         }
         return expandedUniverse;
     }
@@ -81,7 +83,7 @@ public class Day11 extends Day2023 {
                 Point2D galaxy2 = galaxies.get(j);
                 Point2D galaxy1 = galaxies.get(i);
                 int distance = Math.abs(galaxy2.y - galaxy1.y) + Math.abs(galaxy2.x - galaxy1.x);
-                System.err.println("Distance from " + galaxy1 + " to " + galaxy2 + " = " + distance);
+                LOG.debug("Distance from {} to {} = {}", galaxy1, galaxy2, distance);
                 totalDistance+=distance;
             }
         }

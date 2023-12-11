@@ -3,7 +3,12 @@ package fr.fvieillard.adventofcode;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public abstract class Day {
+    protected final Logger LOG;
+
     private int year;
     private int day;
     private String title;
@@ -11,6 +16,7 @@ public abstract class Day {
 
 
     public Day(int year, int day, String title, InputStream input) {
+        this.LOG = LogManager.getLogger(this.getClass());
         this.year = year;
         this.day = day;
         this.title = title;

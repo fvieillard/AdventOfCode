@@ -29,10 +29,10 @@ public class Day10 extends Day2023 {
                 map[y][x] = symbol;
                 if (symbol == 'S') start = new Point2D(y, x);
             }
-            System.err.println(Arrays.toString(map[y]));
+            LOG.debug(Arrays.toString(map[y]));
             y++;
         }
-        System.err.println("Starting search at: " + start);
+        LOG.debug("Starting search at: {}", start);
 
 
         // Search
@@ -51,7 +51,7 @@ public class Day10 extends Day2023 {
         if (isPipeConnecting(start.right(), map, Arrays.asList('-', '7', 'J'))) {
             current = start.right();
         }
-        System.err.println("Found connecting pipe at " + current + ", following the path...");
+        LOG.debug("Found connecting pipe at {}, following the path...", current);
         long length = 1;
 
         while (!current.equals(start)) {
@@ -76,16 +76,16 @@ public class Day10 extends Day2023 {
                     next = previous.equals(current.down()) ? current.left() : current.down();
                     break;
                 default:
-                    System.err.println("Path boken at " + current + " coming from " + previous);
+                    LOG.debug("Path boken at {} coming from {}", current, previous);
                     throw new IllegalArgumentException();
             }
-            System.err.println("At " + current + "(" + map[current.y][current.x] + ") coming from " + previous + ". Next step is " + next + ". Path length so far: " + length);
+            LOG.debug("At " + current + "(" + map[current.y][current.x] + ") coming from " + previous + ". Next step is " + next + ". Path length so far: " + length);
             previous = current;
             current = next;
             length++;
         }
 
-        System.err.println("Reached start again! Loop took " + length + " steps.");
+        LOG.debug("Reached start again! Loop took {} steps.", length);
 
         return length / 2;
     }

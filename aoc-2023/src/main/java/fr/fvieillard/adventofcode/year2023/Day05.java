@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Day05 extends Day2023 {
 
     private SortedSet<MappingRange> seedToSoil = new TreeSet<>();
@@ -86,21 +89,21 @@ public class Day05 extends Day2023 {
 
 
     Collection<Range> mapSeedToLocation(Collection<Range> seed) {
-//        System.out.println("Seed " + seed);
+        LOG.debug("Seed {}", seed);
         Collection<Range> soil = map(seed, seedToSoil);
-//        System.out.println(", soil " + soil);
+        LOG.debug("soil {}", soil);
         Collection<Range> fertilizer = map(soil, soilToFertilizer);
-//        System.out.println(", fertilizer " + fertilizer);
+        LOG.debug("fertilizer {}", fertilizer);
         Collection<Range> water = map(fertilizer, fertilizerToWater);
-//        System.out.println(", water " + water);
+        LOG.debug("water {}", water);
         Collection<Range> light = map(water, waterToLight);
-//        System.out.println(", light " + light);
+        LOG.debug("light {}", light);
         Collection<Range> temperature = map(light, lightToTemperature);
-//        System.out.println(", temperature " + temperature);
+        LOG.debug("temperature {}", temperature);
         Collection<Range> humidity = map(temperature, temperatureToHumidity);
-//        System.out.println(", humidity " + humidity);
+        LOG.debug("humidity {}", humidity);
         Collection<Range> location = map(humidity, humidityToLocation);
-//        System.out.println(", location " + location);
+        LOG.debug("location {}", location);
         return location;
     }
 
@@ -127,6 +130,7 @@ public class Day05 extends Day2023 {
     }
 
     record Range(Long start, Long length) implements Comparable<Range> {
+        private static final Logger LOG = LogManager.getLogger();
 
         @Override
         public String toString() {
@@ -169,7 +173,7 @@ public class Day05 extends Day2023 {
                 }
                 result.add(Range.fromBoundaries(Math.max(value.start(), start()), Math.min(value.end(), end()) + 1));
             }
-//            System.out.println(String.format("%s ∩ %s = %s", this, value, result));
+            LOG.debug(String.format("%s ∩ %s = %s", this, value, result));
             return result;
         }
     }

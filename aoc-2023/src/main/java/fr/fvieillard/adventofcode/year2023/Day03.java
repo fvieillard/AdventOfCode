@@ -40,8 +40,8 @@ public class Day03 extends Day2023 {
                     .toList());
             y++;
         }
-        System.err.println("partNumbers:" + parts);
-        System.err.println("symbols:" + symbols);
+        LOG.debug("partNumbers: {}", parts);
+        LOG.debug("symbols: {}", symbols);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class Day03 extends Day2023 {
 
             if (adjacentParts.size() == 2) {
                 long ratio = adjacentParts.get(0).value * adjacentParts.get(1).value;
-                System.err.println(String.format("Found gear around symbol %s, with parts %s. --> Gear Ratio: %s", symbol, adjacentParts, ratio));
+                LOG.debug("Found gear around symbol {}, with parts {}. --> Gear Ratio: {}", symbol, adjacentParts, ratio);
                 result += ratio;
             }
         }

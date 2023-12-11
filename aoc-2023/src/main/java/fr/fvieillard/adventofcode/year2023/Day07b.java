@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Day07b extends Day2023 {
 
     enum Card {
@@ -29,6 +32,7 @@ public class Day07b extends Day2023 {
     }
 
     static class Hand implements Comparable<Hand> {
+        private static final Logger LOG = LogManager.getLogger();
         Card c1, c2, c3, c4, c5;
         HandType type;
 
@@ -41,7 +45,7 @@ public class Day07b extends Day2023 {
 
             Map<Card, Long> countsByCard = Stream.of(c1, c2, c3, c4, c5)
                     .collect(Collectors.groupingBy(e -> e, Collectors.counting()));
-            System.err.println(countsByCard);
+            LOG.debug(countsByCard);
 
             // Extract number of 'J'
             final long js = countsByCard.containsKey(Card.CARD_J) ? countsByCard.remove(Card.CARD_J) : 0;
@@ -56,7 +60,7 @@ public class Day07b extends Day2023 {
             } else {
                 counts.add(counts.remove(0) + js);
             }
-            System.err.println(counts);
+            LOG.debug(counts);
 
             if (counts.contains(5L)) {
                 type = HandType.FIVE_OF_A_KIND;
@@ -137,7 +141,7 @@ public class Day07b extends Day2023 {
         for (Row r : rows) {
             i++;
             sum += i * r.bid;
-            System.err.println(String.format("%s,  %s * %s", r.hand, i, r.bid));
+            LOG.debug("{},  {} * {}", r.hand, i, r.bid);
         }
         return sum;
     }

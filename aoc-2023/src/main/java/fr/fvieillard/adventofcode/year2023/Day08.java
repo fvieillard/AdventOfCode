@@ -35,8 +35,8 @@ public class Day08 extends Day2023 {
             }
         });
 
-        System.err.println(instructions);
-        System.err.println(nodes);
+        LOG.debug(instructions);
+        LOG.debug(nodes);
     }
 
     @Override
@@ -47,11 +47,11 @@ public class Day08 extends Day2023 {
     @Override
     public Object getSolutionPart2() {
         List<String> currentNodes = nodes.keySet().parallelStream().filter(s -> s.charAt(2) == 'A').toList();
-        System.err.println("Starting points: " + currentNodes);
+        LOG.debug("Starting points: {}", currentNodes);
 
         for (String start : currentNodes) {
             int steps = getNumberOfSteps(start, s -> s.charAt(2) == 'Z');
-            System.err.println(String.format("for start point %s, we reach a solution in %s steps", start, steps));
+            LOG.debug("for start point {}, we reach a solution in {} steps", start, steps);
         }
 
         //TODO: implement LCM search for all results

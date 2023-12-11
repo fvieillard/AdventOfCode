@@ -47,7 +47,7 @@ public class Day02 extends Day2023 {
                 }
                 draws.add(new Draw(nbRed, nbGreen, nbBlue));
             }
-//            System.out.println("Game " + id + "  -  " + draws);
+        LOG.debug("Game " + id + "  -  " + draws);
         });
     }
 
@@ -76,7 +76,7 @@ public class Day02 extends Day2023 {
                 needBlue = Math.max(needBlue, draw.nbBlue());
             }
             Integer power = needRed * needGreen * needBlue;
-            System.out.println(String.format("For game %s, we need at least %s red cubes, %s green cubes and %s blue cubes. The power for this game is %s",
+            LOG.debug(String.format("For game %s, we need at least %s red cubes, %s green cubes and %s blue cubes. The power for this game is %s",
                     integerListEntry.getKey(), needRed, needGreen, needBlue, power));
             return power;
         })

@@ -5,7 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Day09 extends Day2023 {
+    private static final Logger LOG = LogManager.getLogger();
 
     public Day09(InputStream input) {
         super(9, "Mirage Maintenance", input);
@@ -36,7 +40,7 @@ public class Day09 extends Day2023 {
     }
 
     static Integer extrapolate(List<Integer> measures) {
-//        System.err.println("Extrapolating for: " + measures);
+        LOG.debug("Extrapolating for: {}", measures);
 
         List<Integer> reduction = new ArrayList<>(measures.size() - 1);
         boolean allZeros = true;
@@ -46,13 +50,13 @@ public class Day09 extends Day2023 {
             reduction.add(elem);
         }
 
-//        System.err.println("   " + reduction);
+        LOG.debug("   {}", reduction);
 
         return measures.get(measures.size() - 1) + (allZeros ? 0 : extrapolate(reduction));
     }
 
     static Integer extrapolateBefore(List<Integer> measures) {
-//        System.err.println("Extrapolating (before) for: " + measures);
+        LOG.debug("Extrapolating (before) for: {}", measures);
 
         List<Integer> reduction = new ArrayList<>(measures.size() - 1);
         boolean allZeros = true;
@@ -62,7 +66,7 @@ public class Day09 extends Day2023 {
             reduction.add(elem);
         }
 
-//        System.err.println("   " + reduction);
+        LOG.debug("   {}", reduction);
 
         return measures.get(0) - (allZeros ? 0 : extrapolateBefore(reduction));
     }

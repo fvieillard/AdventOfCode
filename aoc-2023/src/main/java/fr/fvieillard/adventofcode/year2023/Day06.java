@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Day06 extends Day2023 {
 
     public Day06(InputStream input) {
@@ -27,7 +30,7 @@ public class Day06 extends Day2023 {
             races.add(new Race(Long.valueOf(times[i]), Long.valueOf(distances[i])));
         }
 
-        System.out.println(races);
+        LOG.debug(races);
 
         return races.stream().mapToLong(Race::waysToWin).reduce((left, right) -> left * right).getAsLong();
     }
@@ -39,13 +42,14 @@ public class Day06 extends Day2023 {
         Race race = new Race(Long.valueOf(lines[0].replaceAll("Time:| *","")),
         Long.valueOf(lines[1].replaceAll("Distance:| *","")));
 
-        System.out.println(race);
+        LOG.debug(race);
 
         return race.waysToWin();
     }
 
 
     record Race(Long duration, Long recordDistance) {
+        private static final Logger LOG = LogManager.getLogger();
         boolean isWinner(Long timePressed) {
             return timePressed * (duration - timePressed) > recordDistance;
         }
@@ -59,7 +63,7 @@ public class Day06 extends Day2023 {
                     }
                     max = i;
                 } else if (max != null) {
-                    System.out.println(String.format("Stopping loop as we reached the second boudary. [%s -> %s]", min, max));
+                    LOG.debug("Stopping loop as we reached the second boudary. [{} -> {}]", min, max);
                     break;
                 }
             }
