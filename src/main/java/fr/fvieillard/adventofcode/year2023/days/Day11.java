@@ -2,9 +2,11 @@ package fr.fvieillard.adventofcode.year2023.days;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -16,7 +18,9 @@ import fr.fvieillard.adventofcode.year2023.Day2023;
 public class Day11 extends Day2023 {
 
 
-    Set<Point2D> expandedUniverse = new TreeSet<>();
+    SortedSet<Point2D> universe = new TreeSet<>();
+    SortedSet<Integer> rowsWithoutGalaxy = new TreeSet<>();
+    SortedSet<Integer> columnsWithoutGalaxy = new TreeSet<>();
 
     public Day11(InputStream input) {
         super(11, "Cosmic Expansion", input);
@@ -31,46 +35,49 @@ public class Day11 extends Day2023 {
     void parseUniverse() {
         String[] lines = getInput().split("\n");
         int height = lines.length, width = lines[0].length();
+        rowsWithoutGalaxy = new TreeSet<>(IntStream.range(0, height).mapToObj(Integer::valueOf).toList());
+        columnsWithoutGalaxy = new TreeSet<>(IntStream.range(0, width).mapToObj(Integer::valueOf).toList());
 
         int y = 0;
         Pattern galaxyPattern = Pattern.compile("#");
 
-        Set<Point2D> universe = new TreeSet<>();
-        Set<Integer> columsWithoutGalaxy = new TreeSet<>(IntStream.range(0, width).mapToObj(Integer::valueOf).toList());
         for (String line : lines) {
             System.err.println("Line " + y + ": " + line);
             Matcher matcher = galaxyPattern.matcher(line);
             List<MatchResult> results = matcher.results().toList();
-            if (results.isEmpty()) {
-                // If no galaxy in this line, we can already expand vertically and add one more increment to y
-                System.err.println("No galaxy in line, expanding...");
-                y++;
-            }
             for (MatchResult result : results) {
                 System.err.println("Found galaxy at " + new Point2D(y, result.start()));
-                columsWithoutGalaxy.remove(result.start());
+                rowsWithoutGalaxy.remove(y);
+                columnsWithoutGalaxy.remove(result.start());
                 universe.add(new Point2D(y, result.start()));
             }
             y++;
         }
-        System.err.println("No galaxy in colums: " + columsWithoutGalaxy + ". expanding...");
 
+        System.err.println("State of universe: " + universe);
+    }
+
+
+    public Set<Point2D> expandedUniverse(int expansionFactor) {
+        System.err.println("No galaxy in rows: " + rowsWithoutGalaxy + ". expanding...");
+        System.err.println("No galaxy in colums: " + columnsWithoutGalaxy + ". expanding...");
+
+
+        Set<Point2D> expandedUniverse = new TreeSet<>();
         for (Point2D point : universe) {
-            Point2D expandedPoint = new Point2D(point.y,
-                    point.x + Math.toIntExact(columsWithoutGalaxy.stream()
-                            .filter(integer -> integer < point.x)
-                            .count()));
+
+            Point2D expandedPoint = new Point2D(
+                    point.y + expansionFactor * rowsWithoutGalaxy.headSet(point.y).size(),
+                    point.x + expansionFactor * columnsWithoutGalaxy.headSet(point.x).size());
             expandedUniverse.add(expandedPoint);
             System.err.println(point + " --> " + expandedPoint);
         }
-
-        System.err.println("State of expanded universe: " + expandedUniverse);
+        return expandedUniverse;
     }
 
-    @Override
-    public Object getSolutionPart1() {
-        List<Point2D> galaxies = new ArrayList<>(expandedUniverse);
-        int totalDistance = 0;
+    public static long sumOfDistances(Collection<Point2D> universe) {
+        List<Point2D> galaxies = new ArrayList<>(universe);
+        long totalDistance = 0;
         for (int i = 0; i < galaxies.size(); i++) {
             for (int j = i + 1; j < galaxies.size(); j++) {
                 Point2D galaxy2 = galaxies.get(j);
@@ -83,9 +90,14 @@ public class Day11 extends Day2023 {
         return totalDistance;
     }
 
+    @Override
+    public Object getSolutionPart1() {
+        return sumOfDistances(expandedUniverse(1));
+    }
+
 
     public Object getSolutionPart2() {
-        return null;
+        return sumOfDistances(expandedUniverse(999999));
     }
 
     record Point2D(int y, int x) implements Comparable<Point2D> {
