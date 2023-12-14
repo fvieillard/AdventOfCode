@@ -8,6 +8,8 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import fr.fvieillard.adventofcode.common.ArrayUtils;
+
 public class Day13 extends Day2023 {
     private static final Logger LOG = LogManager.getLogger();
 
@@ -37,36 +39,9 @@ public class Day13 extends Day2023 {
     }
 
 
-    private static final char[][] rotateArray(char[][] input) {
-        // rotateArray 90° right and start again to find vertical reflexion
-
-        int rows = input.length;
-        int cols = input[0].length;
-
-        char[][] rotatedArray = new char[cols][rows];
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                rotatedArray[c][r] = input[r][c];
-            }
-        }
-        return rotatedArray;
-    }
-
-    private static final char[][] stringToCharArray(String input) {
-        String[] lines = input.lines().toArray(String[]::new);
-        int rows = Math.toIntExact(lines.length);
-        int cols = lines[0].length();
-
-        char[][] array = new char[rows][cols];
-        for (int i = 0; i < rows; i++) {
-            array[i] = lines[i].toCharArray();
-        }
-        return array;
-    }
-
     static int summarizeNote2(String input) {
         LOG.debug("Map: \n{}", input);
-        char[][] array = stringToCharArray(input);
+        char[][] array = ArrayUtils.stringToCharArray(input);
 
         LOG.debug("=== Searching horizontal reflection");
         int ref = findReflection2(array);
@@ -76,7 +51,7 @@ public class Day13 extends Day2023 {
         }
 
         LOG.debug("=== Searching vertical reflection");
-        ref = findReflection2(rotateArray(array));
+            ref = findReflection2(ArrayUtils.rotateArray90Clockwise(array));
         if (ref > 0) {
             LOG.debug("Found new vertical reflection between columns {} and {}", ref - 1, ref);
             return ref;
@@ -89,7 +64,7 @@ public class Day13 extends Day2023 {
 
     static int summarizeNote(String input) {
         LOG.debug("Map: \n{}", input);
-        char[][] array = stringToCharArray(input);
+        char[][] array = ArrayUtils.stringToCharArray(input);
 
         int ref = findReflection(array);
         if (ref > 0) {
@@ -98,7 +73,7 @@ public class Day13 extends Day2023 {
         }
 
         // rotateArray 90° right and start again to find vertical reflexion
-        ref = findReflection(rotateArray(array));
+        ref = findReflection(ArrayUtils.rotateArray90Clockwise(array));
         if (ref > 0) {
             LOG.debug("Found vertical reflection between columns {} and {}", ref - 1, ref);
             return ref;

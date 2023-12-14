@@ -1,10 +1,11 @@
 package fr.fvieillard.adventofcode.year2023;
 
 import java.io.InputStream;
-import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import fr.fvieillard.adventofcode.common.ArrayUtils;
 
 public class Day14 extends Day2023 {
     private static final Logger LOG = LogManager.getLogger();
@@ -20,12 +21,12 @@ public class Day14 extends Day2023 {
 
     @Override
     public Object getSolutionPart1() {
-        char[][] array = stringToCharArray(getInput());
+        char[][] array = ArrayUtils.stringToCharArray(getInput());
 
         int rows = array.length;
         int cols = array[0].length;
 
-        LOG.debug("array before: {}", array);
+        LOG.debug("array before: \n{}", ArrayUtils.charArrayToString(array));
 
         for (int r = 1; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -39,8 +40,8 @@ public class Day14 extends Day2023 {
                 }
             }
         }
-
-        LOG.debug("array after: {}", Arrays.deepToString(array));
+        
+        LOG.debug("array after: \n{}", ArrayUtils.charArrayToString(array));
 
         long totalWeight = 0;
         for (int r = 0; r < rows; r++) {
@@ -56,18 +57,4 @@ public class Day14 extends Day2023 {
     public Object getSolutionPart2() {
         return null;
     }
-
-
-    private static final char[][] stringToCharArray(String input) {
-        String[] lines = input.lines().toArray(String[]::new);
-        int rows = Math.toIntExact(lines.length);
-        int cols = lines[0].length();
-
-        char[][] array = new char[rows][cols];
-        for (int i = 0; i < rows; i++) {
-            array[i] = lines[i].toCharArray();
-        }
-        return array;
-    }
-
 }
