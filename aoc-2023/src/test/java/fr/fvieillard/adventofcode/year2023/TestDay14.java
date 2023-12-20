@@ -15,6 +15,6 @@ public class TestDay14 {
     @Test
     void testPart2() {
         Day dayToTest = new Day14(this.getClass().getResourceAsStream("day_14.txt"));
-        Assertions.assertEquals("null", String.valueOf(dayToTest.getSolutionPart2()));
+        Assertions.assertEquals("64", String.valueOf(dayToTest.getSolutionPart2()));
     }
 }
